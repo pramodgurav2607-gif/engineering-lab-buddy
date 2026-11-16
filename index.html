@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#081525">
+<title>Engineering Lab Buddy | Your Smart Lab Companion</title>
+<style>
+:root {
+  --bg:#081525;
+  --panel:#102238;
+  --card:#142b43;
+  --cyan:#22d3ee;
+  --blue:#398bff;
+  --text:#edf6ff;
+  --muted:#9bb0c5;
+  --border:rgba(148,180,210,.16);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:Inter,Arial,sans-serif;line-height:1.6;
+}
+button,input,select{font:inherit}
+button{cursor:pointer}
+header{
+  position:sticky;top:0;z-index:5;
+  background:rgba(8,21,37,.94);
+  backdrop-filter:blur(15px);
+  border-bottom:1px solid var(--border);
+}
+.nav{
+  max-width:1200px;margin:auto;padding:16px 22px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.brand{font-size:20px;font-weight:800;letter-spacing:-.5px}
+.brand span{color:var(--cyan)}
+.tagline{font-size:11px;color:var(--muted)}
+.hero{
+  padding:75px 22px 55px;
+  background:radial-gradient(ellipse at 75% 20%,#16466a 0,transparent 42%),
+             linear-gradient(135deg,#0b1c30,#0a192a);
+}
+.hero-inner{max-width:1100px;margin:auto}
+.eyebrow{color:var(--cyan);font-size:12px;font-weight:800;letter-spacing:2px}
+h1{font-size:clamp(36px,6vw,64px);line-height:1.08;margin:15px 0}
+.hero p{color:#b5c9dc;max-width:620px;font-size:17px}
+.hero-buttons{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+.btn{
+  border:0;border-radius:10px;padding:12px 19px;
+  font-weight:750;background:linear-gradient(110deg,var(--cyan),var(--blue));
+  color:#041522;
+}
+.btn.secondary{background:transparent;color:var(--text);border:1px solid var(--border)}
+.container{max-width:1200px;margin:auto;padding:35px 22px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:-5px}
+.stat,.panel,.branch,.equipment{
+  background:var(--panel);border:1px solid var(--border);border-radius:15px;
+}
+.stat{padding:19px}
+.stat strong{display:block;font-size:29px;color:var(--cyan)}
+.stat small{color:var(--muted)}
+.section-title{font-size:25px;margin:0 0 6px}
+.section-sub{color:var(--muted);margin:0 0 22px}
+.branch-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:13px;
+}
+.branch{
+  padding:18px;text-align:left;color:var(--text);transition:.2s;
+}
+.branch:hover,.branch.active{border-color:var(--cyan);transform:translateY(-2px)}
+.branch strong{display:block;font-size:16px}
+.branch small{color:var(--muted)}
+.filters{
+  display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;
+  margin:20px 0;
+}
+.field{
+  width:100%;padding:13px 14px;border:1px solid var(--border);
+  border-radius:10px;background:#0b1b2d;color:var(--text);outline:none;
+}
+.field:focus{border-color:var(--cyan)}
+.results-line{color:var(--muted);font-size:13px;margin:12px 0}
+.equipment-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:16px;
+}
+.equipment{overflow:hidden;transition:.2s}
+.equipment:hover{transform:translateY(-3px);border-color:#267a9b}
+.equipment img{width:100%;height:155px;object-fit:cover;background:#0b1b2d}
+.equipment-content{padding:17px}
+.code{color:var(--cyan);font-size:11px;font-weight:800;letter-spacing:1px}
+.equipment h3{font-size:18px;margin:7px 0}
+.equipment p{color:var(--muted);font-size:13px;min-height:42px}
+.meta{color:#9bb0c5;font-size:11px;margin:10px 0}
+.view-btn{
+  background:transparent;border:1px solid var(--cyan);color:var(--cyan);
+  border-radius:8px;padding:9px 13px;font-weight:700;
+}
+.empty,.loading,.error{
+  padding:35px;text-align:center;color:var(--muted);
+  background:var(--panel);border-radius:14px;
+}
+.error{color:#ff9c9c}
+footer{
+  border-top:1px solid var(--border);padding:28px 20px;
+  text-align:center;color:var(--muted);font-size:12px;
+}
+.modal{
+  display:none;position:fixed;inset:0;z-index:20;
+  background:rgba(0,0,0,.78);padding:20px;overflow:auto;
+}
+.modal.open{display:flex;align-items:flex-start;justify-content:center}
+.modal-box{
+  width:min(760px,100%);margin:30px auto;background:#102238;
+  border:1px solid var(--border);border-radius:18px;padding:25px;
+}
+.modal-top{display:flex;justify-content:space-between;gap:15px}
+.close{
+  background:#203951;border:0;color:white;border-radius:8px;
+  width:36px;height:36px;font-size:20px;flex-shrink:0;
+}
+.detail-section{border-top:1px solid var(--border);padding:14px 0}
+.detail-section h4{color:var(--cyan);margin:0 0 6px}
+.detail-section p{white-space:pre-line;color:#c4d4e3;margin:0;font-size:14px}
+.modal-links{display:flex;gap:12px;flex-wrap:wrap;margin-top:15px}
+.modal-links a{color:var(--cyan)}
+@media(max-width:650px){
+ .filters{grid-template-columns:1fr}
+ .stats{gap:8px}
+ .stat{padding:12px}
+ .stat strong{font-size:23px}
+ .hero{padding-top:52px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <div>
+      <div class="brand">⚙ ENGINEERING <span>LAB BUDDY</span></div>
+      <div class="tagline">YOUR SMART LAB COMPANION</div>
+    </div>
+    <div class="tagline">EXPLORE • IDENTIFY • UNDERSTAND</div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">THE SMARTER WAY TO LEARN</div>
+    <h1>Explore your laboratory.<br><span style="color:#22d3ee">Understand every machine.</span></h1>
+    <p>Your digital engineering laboratory companion. Discover equipment, understand working principles, explore components and learn procedures.</p>
+    <div class="hero-buttons">
+      <button class="btn" onclick="document.getElementById('equipmentSection').scrollIntoView({behavior:'smooth'})">Explore Equipment ↓</button>
+      <button class="btn secondary" onclick="document.getElementById('branchesSection').scrollIntoView({behavior:'smooth'})">Explore Branches</button>
+    </div>
+  </div>
+</section>
+
+<main class="container">
+  <section class="stats">
+    <div class="stat"><strong id="equipmentCount">—</strong><small>Published Equipment</small></div>
+    <div class="stat"><strong id="branchCount">—</strong><small>Engineering Branches</small></div>
+    <div class="stat"><strong id="categoryCount">—</strong><small>Equipment Categories</small></div>
+  </section>
+
+  <section id="branchesSection" style="margin-top:48px">
+    <h2 class="section-title">Explore Engineering Branches</h2>
+    <p class="section-sub">Choose your engineering department to discover its laboratory equipment.</p>
+    <div id="branchGrid" class="branch-grid">
+      <div class="loading">Loading branches...</div>
+    </div>
+  </section>
+
+  <section id="equipmentSection" style="margin-top:48px">
+    <h2 class="section-title">Equipment Directory</h2>
+    <p class="section-sub">Search and explore published engineering laboratory equipment.</p>
+
+    <div class="filters">
+      <input id="searchInput" class="field" placeholder="Search equipment, code, lab or description...">
+      <select id="branchFilter" class="field"><option value="">All branches</option></select>
+      <select id="categoryFilter" class="field"><option value="">All categories</option></select>
+    </div>
+
+    <div id="resultCount" class="results-line">Loading equipment...</div>
+    <div id="equipmentGrid" class="equipment-grid">
+      <div class="loading">Connecting to Engineering Lab Buddy...</div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  ENGINEERING LAB BUDDY · EXPLORE. IDENTIFY. UNDERSTAND. OPERATE.<br>
+  Built for engineering students.
+</footer>
+
+<div id="detailModal" class="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <div class="modal-top">
+      <div>
+        <div id="modalCode" class="code"></div>
+        <h2 id="modalTitle" style="margin:5px 0 0"></h2>
+      </div>
+      <button class="close" onclick="closeModal()">×</button>
+    </div>
+    <div id="modalBody"></div>
+    <div id="modalLinks" class="modal-links"></div>
+  </div>
+</div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbxNQIWwGPgPdC_2S3DaT5xKuqZw5l2fmX4FyWao7pSB9ffGdDIUVK46HtMRQ0j1tfBWug/exec";
+
+let allTools = [];
+let allBranches = [];
+let allCategories = [];
+let selectedBranch = "";
+
+const $ = id => document.getElementById(id);
+
+function safeText(value) {
+  return value == null ? "" : String(value);
+}
+
+function validUrl(value) {
+  try {
+    const url = new URL(String(value || ""));
+    return url.protocol === "https:" || url.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
+// JSONP connection for the public Apps Script endpoint.
+function loadPublicData() {
+  const callbackName = "elbCallback_" + Date.now() + "_" +
+    Math.floor(Math.random() * 100000);
+
+  const script = document.createElement("script");
+  let completed = false;
+
+  const timeout = setTimeout(() => {
+    if (!completed) finishError("Connection timed out. Please refresh.");
+  }, 25000);
+
+  function cleanup() {
+    clearTimeout(timeout);
+    script.remove();
+    try { delete window[callbackName]; }
+    catch(e) { window[callbackName] = undefined; }
+  }
+
+  function finishError(message) {
+    if (completed) return;
+    completed = true;
+    cleanup();
+    showError(message);
+  }
+
+  window[callbackName] = function(data) {
+    if (completed) return;
+    completed = true;
+    cleanup();
+
+    if (!data || !Array.isArray(data.tools) ||
+        !Array.isArray(data.branches) ||
+        !Array.isArray(data.categories)) {
+      showError("The server returned an unexpected data format.");
+      return;
+    }
+
+    allTools = data.tools;
+    allBranches = data.branches;
+    allCategories = data.categories;
+
+    renderEverything();
+  };
+
+  script.onerror = () => finishError(
+    "Unable to connect to the database. Check your Apps Script deployment."
+  );
+
+  script.src = API_URL +
+    "?action=publicData&callback=" + encodeURIComponent(callbackName);
+
+  document.body.appendChild(script);
+}
+
+function showError(message) {
+  $("equipmentGrid").replaceChildren();
+  const box = document.createElement("div");
+  box.className = "error";
+  box.textContent = message;
+  $("equipmentGrid").appendChild(box);
+  $("resultCount").textContent = "Database connection failed";
+}
+
+function isActive(record) {
+  const status = safeText(record.Status).trim().toLowerCase();
+  return !status || status === "active" || status === "published";
+}
+
+function renderEverything() {
+  allBranches = allBranches.filter(isActive);
+  allCategories = allCategories.filter(isActive);
+
+  $("equipmentCount").textContent = allTools.length;
+  $("branchCount").textContent = allBranches.length;
+  $("categoryCount").textContent = allCategories.length;
+
+  renderBranches();
+  renderFilters();
+  renderEquipment();
+}
+
+function renderBranches() {
+  const grid = $("branchGrid");
+  grid.replaceChildren();
+
+  const allButton = createBranchButton("All Branches", "Explore all equipment", "");
+  grid.appendChild(allButton);
+
+  allBranches.forEach(branch => {
+    const id = safeText(branch.BranchID);
+    const name = safeText(branch.BranchName);
+    const count = allTools.filter(t => safeText(t.BranchID) === id).length;
+
+    grid.appendChild(
+      createBranchButton(name, count + " published equipment guides", id)
+    );
+  });
+}
+
+function createBranchButton(name, description, id) {
+  const button = document.createElement("button");
+  button.className = "branch" + (selectedBranch === id ? " active" : "");
+  const title = document.createElement("strong");
+  title.textContent = name;
+  const sub = document.createElement("small");
+  sub.textContent = description;
+  button.append(title, sub);
+
+  button.addEventListener("click", () => {
+    selectedBranch = id;
+    $("branchFilter").value = id;
+    renderBranches();
+    renderEquipment();
+    $("equipmentSection").scrollIntoView({behavior:"smooth"});
+  });
+  return button;
+}
+
+function renderFilters() {
+  const branchSelect = $("branchFilter");
+  const categorySelect = $("categoryFilter");
+
+  branchSelect.replaceChildren(new Option("All branches", ""));
+  allBranches.forEach(b => {
+    branchSelect.add(new Option(
+      safeText(b.BranchName), safeText(b.BranchID)
+    ));
+  });
+
+  categorySelect.replaceChildren(new Option("All categories", ""));
+  allCategories.forEach(c => {
+    categorySelect.add(new Option(
+      safeText(c.CategoryName), safeText(c.CategoryID)
+    ));
+  });
+}
+
+function renderEquipment() {
+  const grid = $("equipmentGrid");
+  grid.replaceChildren();
+
+  const search = $("searchInput").value.trim().toLowerCase();
+  const branch = $("branchFilter").value;
+  const category = $("categoryFilter").value;
+
+  const filtered = allTools.filter(tool => {
+    const searchable = [
+      tool.EquipmentName, tool.EquipmentCode, tool.EquipmentID,
+      tool.ShortDescription, tool.BranchName, tool.CategoryName,
+      tool.Laboratory
+    ].map(safeText).join(" ").toLowerCase();
+
+    return (!search || searchable.includes(search)) &&
+      (!branch || safeText(tool.BranchID) === branch) &&
+      (!category || safeText(tool.CategoryID) === category);
+  });
+
+  $("resultCount").textContent =
+    filtered.length + " equipment guide(s) found";
+
+  if (!filtered.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty";
+    empty.textContent = "No equipment found. Try another search or filter.";
+    grid.appendChild(empty);
+    return;
+  }
+
+  filtered.forEach(tool => grid.appendChild(createEquipmentCard(tool)));
+}
+
+function createEquipmentCard(tool) {
+  const card = document.createElement("article");
+  card.className = "equipment";
+
+  if (validUrl(tool.ImageURL)) {
+    const img = document.createElement("img");
+    img.src = safeText(tool.ImageURL);
+    img.alt = safeText(tool.EquipmentName);
+    img.loading = "lazy";
+    img.onerror = () => img.remove();
+    card.appendChild(img);
+  }
+
+  const content = document.createElement("div");
+  content.className = "equipment-content";
+
+  const code = document.createElement("div");
+  code.className = "code";
+  code.textContent = safeText(tool.EquipmentCode);
+
+  const title = document.createElement("h3");
+  title.textContent = safeText(tool.EquipmentName);
+
+  const description = document.createElement("p");
+  description.textContent = safeText(tool.ShortDescription);
+
+  const meta = document.createElement("div");
+  meta.className = "meta";
+  meta.textContent =
+    safeText(tool.BranchName) + " · " + safeText(tool.CategoryName);
+
+  const button = document.createElement("button");
+  button.className = "view-btn";
+  button.textContent = "View Complete Guide →";
+  button.addEventListener("click", () => openDetails(tool));
+
+  content.append(code, title, description, meta, button);
+  card.appendChild(content);
+  return card;
+}
+
+function addDetail(body, heading, value) {
+  if (!value) return;
+  const section = document.createElement("section");
+  section.className = "detail-section";
+  const title = document.createElement("h4");
+  title.textContent = heading;
+  const text = document.createElement("p");
+  text.textContent = safeText(value);
+  section.append(title, text);
+  body.appendChild(section);
+}
+
+function openDetails(tool) {
+  $("modalCode").textContent = safeText(tool.EquipmentCode);
+  $("modalTitle").textContent = safeText(tool.EquipmentName);
+
+  const body = $("modalBody");
+  body.replaceChildren();
+
+  addDetail(body, "Branch", tool.BranchName);
+  addDetail(body, "Category", tool.CategoryName);
+  addDetail(body, "Laboratory", tool.Laboratory);
+  addDetail(body, "Overview", tool.ShortDescription);
+  addDetail(body, "Working Principle", tool.WorkingPrinciple);
+  addDetail(body, "Main Components", tool.Components);
+  addDetail(body, "Working Procedure", tool.WorkingProcedure);
+  addDetail(body, "Applications", tool.Applications);
+  addDetail(body, "Safety Information", tool.SafetyInformation);
+
+  const links = $("modalLinks");
+  links.replaceChildren();
+
+  [
+    ["Video Guide", tool.VideoURL],
+    ["PDF Guide", tool.PDFURL]
+  ].forEach(([label, url]) => {
+    if (!validUrl(url)) return;
+    const link = document.createElement("a");
+    link.href = safeText(url);
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = label + " ↗";
+    links.appendChild(link);
+  });
+
+  $("detailModal").classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function closeModal() {
+  $("detailModal").classList.remove("open");
+  document.body.style.overflow = "";
+}
+
+$("searchInput").addEventListener("input", renderEquipment);
+
+$("branchFilter").addEventListener("change", event => {
+  selectedBranch = event.target.value;
+  renderBranches();
+  renderEquipment();
+});
+
+$("categoryFilter").addEventListener("change", renderEquipment);
+
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape") closeModal();
+});
+
+loadPublicData();
+</script>
+</body>
+</html>
