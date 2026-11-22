@@ -233,59 +233,95 @@ function validUrl(value) {
 
 // JSONP connection for the public Apps Script endpoint.
 function loadPublicData() {
-  const callbackName = "elbCallback_" + Date.now() + "_" +
-    Math.floor(Math.random() * 100000);
+  $('loadError').classList.add('hidden');
+  $('equipmentGrid').classList.remove('hidden');
+  $('equipmentGrid').replaceChildren();
 
-  const script = document.createElement("script");
-  let completed = false;
+  const loading = document.createElement('div');
+  loading.className = 'page-message';
 
-  const timeout = setTimeout(() => {
-    if (!completed) finishError("Connection timed out. Please refresh.");
-  }, 25000);
+  const spinner = document.createElement('div');
+  spinner.className = 'loader';
 
-  function cleanup() {
-    clearTimeout(timeout);
-    script.remove();
-    try { delete window[callbackName]; }
-    catch(e) { window[callbackName] = undefined; }
-  }
+  loading.append(
+    spinner,
+    document.createTextNode('Loading equipment database...')
+  );
 
-  function finishError(message) {
-    if (completed) return;
-    completed = true;
-    cleanup();
-    showError(message);
-  }
+  $('equipmentGrid').appendChild(loading);
+  $('resultCount').textContent = 'Loading equipment...';
+
+  const API_URL = 'https://script.google.com/macros/s/AKfycbxNQIWwGPgPdC_2S3DaT5xKuqZw5l2fmX4FyWao7pSB9ffGdDIUVK46HtMRQ0j1tfBWug/exec';
+
+  const equipmentId = new URLSearchParams(
+    window.location.search
+  ).get('id');
+
+  const callbackName = 'elbCallback_' + Date.now();
 
   window[callbackName] = function(data) {
-    if (completed) return;
-    completed = true;
-    cleanup();
+    delete window[callbackName];
 
-    if (!data || !Array.isArray(data.tools) ||
-        !Array.isArray(data.branches) ||
-        !Array.isArray(data.categories)) {
-      showError("The server returned an unexpected data format.");
+    if (!data || !Array.isArray(data.tools)) {
+      showLoadError('Invalid data received from server.');
       return;
     }
 
-    allTools = data.tools;
-    allBranches = data.branches;
-    allCategories = data.categories;
+    if (
+      !Array.isArray(data.branches) ||
+      !Array.isArray(data.categories)
+    ) {
+      showLoadError('Incomplete database response.');
+      return;
+    }
 
-    renderEverything();
+    publicData = data;
+    initializePublicWebsite();
+
+    if (equipmentId) {
+      if (publicData.tools.length === 1) {
+        const tool = publicData.tools[0];
+
+        openEquipmentDetail(String(tool.EquipmentID));
+
+        $('resultCount').textContent =
+          'Scanned equipment: ' + tool.EquipmentName;
+      } else {
+        $('equipmentGrid').replaceChildren();
+
+        const empty = document.createElement('div');
+        empty.className = 'empty-state';
+
+        const heading = document.createElement('h3');
+        heading.textContent = 'Equipment Not Found';
+
+        const message = document.createElement('p');
+        message.textContent =
+          'This QR code does not match an available published equipment guide.';
+
+        empty.append(heading, message);
+        $('equipmentGrid').appendChild(empty);
+      }
+    }
   };
 
-  script.onerror = () => finishError(
-    "Unable to connect to the database. Check your Apps Script deployment."
-  );
+  const script = document.createElement('script');
 
-  script.src = API_URL +
-    "?action=publicData&callback=" + encodeURIComponent(callbackName);
+  script.src =
+    API_URL +
+    '?action=publicData' +
+    (equipmentId
+      ? '&id=' + encodeURIComponent(equipmentId)
+      : '') +
+    '&callback=' + callbackName;
+
+  script.onerror = function() {
+    delete window[callbackName];
+    showLoadError('Unable to connect to the equipment database.');
+  };
 
   document.body.appendChild(script);
 }
-
 function showError(message) {
   $("equipmentGrid").replaceChildren();
   const box = document.createElement("div");
