@@ -898,7 +898,25 @@ function openDetails(tool) {
 
   const body = $("modalBody");
   body.replaceChildren();
+const imageUrl = tool.ImageURL || tool["Image URL"] || "";
 
+if (validUrl(imageUrl)) {
+  const image = document.createElement("img");
+
+  image.src = imageUrl;
+  image.alt = safeText(tool.EquipmentName);
+  image.loading = "lazy";
+
+  image.style.width = "100%";
+  image.style.maxHeight = "320px";
+  image.style.objectFit = "contain";
+  image.style.borderRadius = "12px";
+  image.style.marginBottom = "16px";
+
+  image.onerror = () => image.remove();
+
+  body.appendChild(image);
+}
   addDetail(body, "Branch", tool.BranchName);
   addDetail(body, "Category", tool.CategoryName);
   addDetail(body, "Laboratory", tool.Laboratory);
