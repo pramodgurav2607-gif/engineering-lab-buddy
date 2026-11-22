@@ -831,11 +831,10 @@ function createEquipmentCard(tool) {
   const card = document.createElement("article");
   card.className = "equipment";
 
-  if (validUrl(tool.ImageURL)) {
-
+  if (validUrl(tool.ImageURL || tool["Image URL"])) {
     const img = document.createElement("img");
 
-    img.src = safeText(tool.ImageURL);
+    img.src = tool.ImageURL || tool["Image URL"];
     img.alt = safeText(tool.EquipmentName);
     img.loading = "lazy";
 
